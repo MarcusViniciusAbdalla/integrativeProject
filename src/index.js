@@ -30,8 +30,8 @@ app.post("/account", (request , response) => {
 
 });
 
-app.get("/statement/:cpf", (request, response) => {
-  const {cpf} = request.params;
+app.get("/statement/", (request, response) => {
+  const {cpf} = request.headers;
 
   const custumer = custumers.find(custumer => custumer.cpf === cpf);
 
