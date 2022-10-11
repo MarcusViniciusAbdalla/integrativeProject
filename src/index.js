@@ -6,20 +6,35 @@ const app = express();
 
 app.use(express.json());
 
-const custumers = [];
+const customers = [];
+
+// Middleware
+function verifyIfExistsAccountCPF(request , response , next) {
+  const {cpf} = request.headers;
+
+  const customer = customers.find(customer => customer.cpf === cpf);
+
+  if(!customer) {
+    return response.status(400).json({ error: "Customer not found"});
+  }
+
+  request.customer = customer;
+
+  return next();
+}
 
 app.post("/account", (request , response) => {
   const {cpf , name } = request.body;
 
-  const custumerAlreadyExists = custumers.some(
-    (custumer) => custumer.cpf === cpf);
+  const customerAlreadyExists = customers.some(
+    (customer) => customer.cpf === cpf);
 
-  if(custumerAlreadyExists) {
-    return response.status(400).json({error: "Custumer already exists"});
+  if(customerAlreadyExists) {
+    return response.status(400).json({error: "Customer already exists"});
   };
 
   
-  custumers.push({
+  customers.push({
     cpf,
     name,
     id: uuidv4(),
@@ -30,16 +45,10 @@ app.post("/account", (request , response) => {
 
 });
 
-app.get("/statement/", (request, response) => {
-  const {cpf} = request.headers;
+app.get("/statement/", verifyIfExistsAccountCPF, (request, response) => {
+  const { customer } = request;  
 
-  const custumer = custumers.find(custumer => custumer.cpf === cpf);
-
-  if(!custumer){
-    return response.status(400).json({ error: "Custumer not found"});
-  }
-
-  return response.json(custumer.statement);
+  return response.json(customer.statement);
 });
 
 app.listen(3333);
